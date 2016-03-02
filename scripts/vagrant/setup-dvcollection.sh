@@ -64,37 +64,48 @@ fi
 
 $_IF_TERSE echo "Creating Solr collection ${DVCOLLECTION_NAME} to use with dataverse"
 
-#### Check for bin/solr availability ####
-if [[ -x ${SOLR_INSTALL_DIR}/solr/bin/solr ]]; then
-  $_IF_VERBOSE echo "found solr executable at ${SOLR_INSTALL_DIR}/solr/bin/solr"
-  _solr=${SOLR_INSTALL_DIR}/solr/bin/solr
-elif ( type -p solr >/dev/null 2>&1 ); then
-  $_IF_VERBOSE echo "found solr executable in PATH" 
-  _solr=solr
-else
-  echo "Unable to find solr executable!" >&2
-  echo "Solr Collection setup has failed!" >&2
-  return 1
-fi
-
+#### Look for dataverse solr configuration ####
 $_IF_VERBOSE echo "Checking for custom solr collection configurations"
-if [[ -e /dataverse/conf/solr/5.x ]]; then
-  DVCOLLECTION_CONF_DIR='/dataverse/conf/solr/5.x'
-elif [[ -e /conf/solr/5.x ]]; then
-  DVCOLLECTION_CONF_DIR='/conf/solr/5.x'
-elif [[ -e ./conf/solr/5.x ]]; then
-  DVCOLLECTION_CONF_DIR='./conf/solr/5.x'
-elif [[ -e ../../../conf/solr/5.x ]]; then
-  DVCOLLECTION_CONF_DIR='../../../conf/solr/5.x'
+if [[ -e /dataverse/conf/solr/5.x/dvcollection/conf ]]; then
+  DVCOLLECTION_DIR='/dataverse/conf/solr/5.x/dvcollection'
+elif [[ -e /conf/solr/5.x/dvcollection/conf ]]; then
+  DVCOLLECTION_DIR='/conf/solr/5.x/dvcollection'
+elif [[ -e ./conf/solr/5.x/dvcollection/conf ]]; then
+  DVCOLLECTION_DIR='./conf/solr/5.x/dvcollection'
+elif [[ -e ../../../conf/solr/5.x/dvcollection/conf ]]; then
+  DVCOLLECTION_DIR='../../../conf/solr/5.x/dvcollection'
 else
   echo "Collection conf directory could not be found!" >&2
   echo "Solr Collection setup has failed!" >&2
   return 1;
 fi
 
-$_IF_VERBOSE echo "found at ${DVCOLLECTION_CONF_DIR}"
+#### Check for bin/solr or solrctl (Cloudera) availability ####
+if [[ -x ${SOLR_INSTALL_DIR}/solr/bin/solr ]]; then
+  $_IF_VERBOSE echo "found solr executable at ${SOLR_INSTALL_DIR}/solr/bin/solr"
+  _solr=${SOLR_INSTALL_DIR}/solr/bin/solr
+elif ( type -p solr >/dev/null 2>&1 ); then
+  $_IF_VERBOSE echo "found solr executable in PATH" 
+  _solr=solr
+elif (type -p solrctl >/dev/null 2>&1 ); then
+  $_IF_VERBOSE echo "found Cloudera solrctl executable in PATH"
+  $_IF_INFO echo "Proceeding with Cloudera Search collection creation workflow"
+  $_IF_VERBOSE echo "Adding ${DVCOLLECTION_NAME} instance directory"
+  $_IF_VERBOSE solrctl instancedir --create ${DVCOLLECTION_NAME} ${DVCOLLECTION_DIR}
+  $_IF_VERBOSE echo "Creating ${DVCOLLECTION_NAME} collection instance"
+  $_IF_VERBOSE solrctl --solr http://localhost:8983/solr collection --create ${DVCOLLECTION_NAME} -c ${DVCOLLECTION_NAME} -s ${DVCOLLECTION_SHARDS} -r ${DVCOLLECTION_REPLICAS}
+  $_IF_TERSE echo "Cloudera Search (solrCloud) collection ${DVCOLLECTION_NAME} established"
+  exit 0
+else
+  echo "Unable to find solr/solrctl executable!" >&2
+  echo "Solr Collection setup has failed!" >&2
+  exit 1
+fi
+
+
+$_IF_VERBOSE echo "found at ${DVCOLLECTION_DIR}/conf"
 $_IF_INFO echo "Creating Solr collection ${DVCOLLECTION_NAME}"
-_create_collection_cmd="create -c '${DVCOLLECTION_NAME}' -d '${DVCOLLECTION_CONF_DIR}'"
+_create_collection_cmd="create -c '${DVCOLLECTION_NAME}' -d '${DVCOLLECTION_DIR}/conf'"
 
 if [[ -n ${DVCOLLECTION_SHARDS} ]]; then
   $_IF_INFO echo "Fragmenting ${DVCOLLECTION_NAME} across ${DVCOLLECTION_SHARDS} solrCloud nodes"
