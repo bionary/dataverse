@@ -15,6 +15,7 @@ my $mailserver;
 my $yes;
 my $force;
 my $nogfpasswd;
+my $filesdir;
 my ($solrcollection, $solrport, $solrhost, $solrhttps, $solrzookeeper);
 my ($rez) = GetOptions(
     #"length=i" => \$length,    # numeric
@@ -28,6 +29,7 @@ my ($rez) = GetOptions(
     "y|yes"        => \$yes,
     "f|force"      => \$force,
     "nogfpasswd"   => \$nogfpasswd,
+    "filesdir=s"   => \$filesdir,
     "solrport=s"   => \$solrport,
     "solrhost=s"   => \$solrhost,
     "solrhttps=i"  => \$solrhttps,
@@ -1244,7 +1246,7 @@ sub setup_glassfish {
 
     $ENV{'HOST_ADDRESS'} = $CONFIG_DEFAULTS{'HOST_DNS_ADDRESS'};
     $ENV{'SMTP_SERVER'}  = $CONFIG_DEFAULTS{'MAIL_SERVER'};
-    $ENV{'FILES_DIR'} =
+    $ENV{'FILES_DIR'} = (defined $filesdir)? $filesdir :
       $CONFIG_DEFAULTS{'GLASSFISH_DIRECTORY'} . "/glassfish/domains/" . $ENV{'GLASSFISH_DOMAIN'} . "/files";
 
     system("./glassfish-setup.sh");

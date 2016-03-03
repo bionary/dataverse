@@ -108,8 +108,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     dataverse.vm.provision "addHosts", type: "shell", inline: "echo \"#{STATIC_IP_CDH}     quickstart.cloudera     quickstart\" >> /etc/hosts"
 
+#    dataverse.vm.provision "installHdfsFuse", type: "shell", path: "../install-HDFS-Fuse.sh", args: "-v #{OUTPUT_VERBOSITY}"
+#    dataverse.vm.provision "mountFuseHDFS", type: "shell", inline: "mkdir -p #{DATAVERSE_HOME}/files; hadoop-fuse-dfs dfs://#{STATIC_IP_CDH}:8020/tmp #{DATAVERSE_HOME}/files"
+    #### most efficient option is to use NFS gateway
+
+    ## Add -f option to set non-standard dataverse.files.directory
     dataverse.vm.provision "dataverseSetup", type: "shell", path: "../install-dataverse.sh",
       args: "-c #{DVCOLLECTION_NAME} -h #{STATIC_IP_DATAVERSE} -m #{mailserver} -z '#{ZOOKEEPER_ENSEMBLE}' -u #{ENABLE_TLS_ON_SOLR} -v #{OUTPUT_VERBOSITY}"
+
 
     dataverse.vm.provision "dvTestUsers", type: "shell", path: "../setup-dv-test_addUsers.sh"
     dataverse.vm.provision "dvTestPublishRoot", type: "shell", path: "../setup-dv-test_publishRoot.sh"

@@ -13,11 +13,16 @@ OPT_s="localhost"
 OPT_u=0
 ## Do not set a default for OPT_z!
 ## Presence of OPT_z is tested to see if this is a zookeeper/solrCloud backed installation.
+## Do not set a default for OPT_f!
+## Presence of OPT_f is tested to see if dataverse should use a non-standard directory path to store uploaded files.
 
-while getopts :c:g:h:m:p:s:u:v:z: FLAG; do
+while getopts :c:f:g:h:m:p:s:u:v:z: FLAG; do
   case $FLAG in
     c)  #set option solr-collection "c"
       OPT_c=$OPTARG
+      ;;
+    f)  #set option filesdir "f"
+      OPT_f=$OPTARG
       ;;
     g)  #set option gfdir "g"
       OPT_g=$OPTARG

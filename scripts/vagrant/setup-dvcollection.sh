@@ -92,8 +92,10 @@ elif (type -p solrctl >/dev/null 2>&1 ); then
   $_IF_INFO echo "Proceeding with Cloudera Search collection creation workflow"
   $_IF_VERBOSE echo "Adding ${DVCOLLECTION_NAME} instance directory"
   $_IF_VERBOSE solrctl instancedir --create ${DVCOLLECTION_NAME} ${DVCOLLECTION_DIR}
+solrctl instancedir --list
+#### collection creation fails (wait and try later it works) something takes time to initialize that is causing failure ####
   $_IF_VERBOSE echo "Creating ${DVCOLLECTION_NAME} collection instance"
-  $_IF_VERBOSE solrctl --solr http://localhost:8983/solr collection --create ${DVCOLLECTION_NAME} -c ${DVCOLLECTION_NAME} -s ${DVCOLLECTION_SHARDS} -r ${DVCOLLECTION_REPLICAS}
+  $_IF_VERBOSE solrctl collection --create ${DVCOLLECTION_NAME} -c ${DVCOLLECTION_NAME} -s ${DVCOLLECTION_SHARDS} -r ${DVCOLLECTION_REPLICAS}
   $_IF_TERSE echo "Cloudera Search (solrCloud) collection ${DVCOLLECTION_NAME} established"
   exit 0
 else
