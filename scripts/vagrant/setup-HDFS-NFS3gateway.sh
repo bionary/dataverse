@@ -48,17 +48,56 @@ else
   CURL_CMD='curl'
 fi
 
-$_IF_TERSE echo "Installing HDFS NFSv3 Gateway using verbosity level: ${OUTPUT_VERBOSITY}"
+$_IF_TERSE echo "Configuring HDFS NFSv3 Gateway using verbosity level: ${OUTPUT_VERBOSITY}"
 
-#### Install hadoop-hdfs-nfs3 using yum ####
-$_IF_INFO echo "Adding cloudera yum repo"
-$_IF_VERBOSE pushd /etc/yum.repos.d
-$_IF_VERBOSE $CURL_CMD -L -O https://archive.cloudera.com/cdh5/redhat/6/x86_64/cdh/cloudera-cdh5.repo
+if [[ -e "/etc/hadoop/conf/hdfs-site.xml" ]]; then
+  _hdfsSiteConf=/etc/hadoop/conf/hdfs-site.xml
+else
+  echo "Could not locate the hdfs-site.xml configuration file." >&2
+  echo "Configuration Failed!" >&2
+  exit 1
+fi
 
-yum_packages=("hadoop-hdfs-nfs3" "nfs-utils" "nfs-utils-lib")
-for yummyPkg in "${yum_packages[@]}"; do
-  $_IF_TERSE echo "Installing $yummyPkg"
-  $_IF_VERBOSE $YUM_CMD install -y $yummyPkg
-done
+if [[ -e "/etc/hadoop/conf/core-site.xml" ]]; then
+  _coreSiteConf=/etc/hadoop/conf/core-site.xml
+else
+  echo "Could not locate the core-site.xml configuration file." >&2
+  echo "Configuration Failed!" >&2
+  exit 1
+fi
 
-$_IF_TERSE echo "HDFS-NFS Gateway installed"
+$_IF_INFO "Adding NFS Gateway configurations to ${_hdfsSiteConf}"
+$_IF_VERBOSE sed -i 's:</configuration>::' $_hdfsSiteConf
+echo "  <property>
+    <name>dfs.namenode.accesstime.precision</name>
+    <value>3600000</value>
+    <description>The access time for an HDFS file is precise up to this value. The default value is 1 hour.
+    Setting a value of 0 disables access times for HDFS.</description>
+  </property>
+  <property>
+    <name>dfs.nfs3.dump.dir</name>
+    <value>/tmp/.hdfs-nfs</value>
+  </property>
+</configuration>
+" >> $_hdfsSiteConf
+
+$_IF_INFO "Adding NFS Gateway configurations to ${_coreSiteConf}"
+$_IF_VERBOSE sed -i 's:</configuration>::' $_coreSiteConf
+echo "  <property>
+   <name>hadoop.proxyuser.hdfs.groups</name>
+   <value>*</value>
+   <description>
+     Set this to '*' to allow the gateway user to proxy any group.
+   </description>
+  </property>
+  <property>
+    <name>hadoop.proxyuser.hdfs.hosts</name>
+    <value>*</value>
+    <description>
+     Set this to '*' to allow requests from any hosts to be proxied.
+    </description>
+  </property>
+</configuration>
+" >> $_coreSiteConf
+
+$_IF_TERSE echo "HDFS-NFS Gateway Configured. Please start the hadoop-hdfs-nfs3 service to enable this gateway"
