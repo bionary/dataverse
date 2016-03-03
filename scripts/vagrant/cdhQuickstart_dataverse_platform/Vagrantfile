@@ -69,7 +69,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     cdh.vm.provision "createDataverseInstancedir", type: "shell", inline: "solrctl instancedir --create #{DVCOLLECTION_NAME} /dataverse/conf/solr/5.x/dvcollection"
 
-    cdh.vm.provision "setFixedVersionClouderaRepo", type: "shell", inline: "sed -i 's:cdh/5:cdh/5.4.2' /etc/yum.repos.d/cloudera-cdh5.repo"
+    cdh.vm.provision "setFixedVersionClouderaRepo", type: "shell", inline: "sed -i 's:cdh/5:cdh/5.4.2:' /etc/yum.repos.d/cloudera-cdh5.repo"
     cdh.vm.provision "installHdfsNFS", type: "shell", path: "../install-HDFS-NFS3gateway.sh", args: "-v #{OUTPUT_VERBOSITY}"
     cdh.vm.provision "setupHdfsNFS", type: "shell", path: "../setup-HDFS-NFS3gateway.sh", args: "-v #{OUTPUT_VERBOSITY}"
     cdh.vm.provision "startHdfsNfsService", type: "shell", inline: "service hadoop-hdfs-nfs3 start"
