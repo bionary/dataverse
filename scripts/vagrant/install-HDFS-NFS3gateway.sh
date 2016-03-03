@@ -6,9 +6,6 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 if [[ -z ${OUTPUT_VERBOSITY} ]];then OUTPUT_VERBOSITY='1'; fi
-if [[ -z ${ZOOKEEPER_CFG} ]]; then ZOOKEEPER_CFG='server.1=localhost:2888:3888'; fi
-
-ZOOKEEPER_SERVER_ID='1'
 
 _usage() {
   echo "\nUsage: $0 \[hv\]"
@@ -51,9 +48,11 @@ fi
 $_IF_TERSE echo "Installing HDFS NFSv3 Gateway using verbosity level: ${OUTPUT_VERBOSITY}"
 
 #### Install hadoop-hdfs-nfs3 using yum ####
-$_IF_INFO echo "Adding cloudera yum repo"
-$_IF_VERBOSE pushd /etc/yum.repos.d
-$_IF_VERBOSE $CURL_CMD -L -O https://archive.cloudera.com/cdh5/redhat/6/x86_64/cdh/cloudera-cdh5.repo
+if [[ ! -e /etc/yum.repos.d/cloudera-cdh5.repo ]]; then
+  $_IF_INFO echo "Adding cloudera yum repo"
+  $_IF_VERBOSE pushd /etc/yum.repos.d
+  $_IF_VERBOSE $CURL_CMD -L -O https://archive.cloudera.com/cdh5/redhat/6/x86_64/cdh/cloudera-cdh5.repo
+fi
 
 yum_packages=("hadoop-hdfs-nfs3" "nfs-utils" "nfs-utils-lib")
 for yummyPkg in "${yum_packages[@]}"; do
