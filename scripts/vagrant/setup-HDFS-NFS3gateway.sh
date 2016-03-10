@@ -66,7 +66,7 @@ else
   exit 1
 fi
 
-$_IF_INFO "Adding NFS Gateway configurations to ${_hdfsSiteConf}"
+$_IF_INFO echo "Adding NFS Gateway configurations to ${_hdfsSiteConf}"
 $_IF_VERBOSE sed -i 's:</configuration>::' $_hdfsSiteConf
 echo "  <property>
     <name>dfs.namenode.accesstime.precision</name>
@@ -81,7 +81,7 @@ echo "  <property>
 </configuration>
 " >> $_hdfsSiteConf
 
-$_IF_INFO "Adding NFS Gateway configurations to ${_coreSiteConf}"
+$_IF_INFO echo "Adding NFS Gateway configurations to ${_coreSiteConf}"
 $_IF_VERBOSE sed -i 's:</configuration>::' $_coreSiteConf
 echo "  <property>
    <name>hadoop.proxyuser.hdfs.groups</name>
